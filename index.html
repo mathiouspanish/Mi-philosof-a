@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Filosofía Diaria</title>
+    <style>
+        :root { --primary: #2c3e50; --accent: #e67e22; --success: #27ae60; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f4f7f6; color: #333; padding: 15px; }
+        .card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 500px; margin: auto; }
+        h1 { font-size: 1.4rem; text-align: center; color: var(--primary); }
+        .word-box { border-bottom: 1px solid #eee; padding: 12px 0; position: relative; }
+        .es { font-weight: bold; color: #2980b9; font-size: 1.1rem; }
+        .en { color: var(--accent); font-style: italic; font-size: 0.9rem; margin-left: 5px; }
+        .def { display: block; font-size: 0.9rem; color: #555; margin-top: 4px; }
+        .btn { width: 100%; padding: 12px; margin-top: 15px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        .btn-history { background: var(--primary); color: white; }
+        .mastered-badge { font-size: 0.7rem; background: var(--success); color: white; padding: 2px 6px; border-radius: 10px; margin-left: 5px; display: none; }
+        .is-mastered .mastered-badge { display: inline-block; }
+        .is-mastered .es { text-decoration: line-through; color: #bdc3c7; }
+        .history-item { background: #fff; padding: 10px; margin-top: 10px; border-radius: 8px; border-left: 4px solid var(--primary); font-size: 0.85rem; }
+        .master-toggle { font-size: 0.7rem; cursor: pointer; color: var(--success); text-decoration: underline; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <div id="today-date" style="text-align: center; color: #999; font-size: 0.8rem;"></div>
+    <h1>Hoy: 5 Conceptos</h1>
+    <div id="daily-words"></div>
+    <button class="btn btn-history" onclick="toggleHistory()">Ver Mi Historial de Aprendizaje</button>
+</div>
+
+<div id="history-section" style="display:none; max-width: 500px; margin: auto; margin-top: 20px;">
+    <h2>Palabras Guardadas</h2>
+    <div id="history-list"></div>
+</div>
+
+<script>
+    const dictionary = [
+        {es: "Ataraxia", en: "Ataraxy", def: "Tranquilidad espiritual."},
+        {es: "Eudaimonía", en: "Eudaimonia", def: "Felicidad o plenitud moral."},
+        {es: "Empirismo", en: "Empiricism", def: "Conocimiento vía sentidos."},
+        {es: "Ontología", en: "Ontology", def: "Estudio del ser."},
+        {es: "Dialéctica", en: "Dialectics", def: "Verdad a través del diálogo."},
+        {es: "Solipsismo", en: "Solipsism", def: "Solo existe mi conciencia."},
+        {es: "Nihilismo", en: "Nihilism", def: "La vida carece de sentido."},
+        {es: "Estoicismo", en: "Stoicism", def: "Resistencia ante el dolor."},
+        {es: "Escepticismo", en: "Skepticism", def: "Duda de toda verdad."},
+        {es: "Hedonismo", en: "Hedonism", def: "Búsqueda del placer."},
+        {es: "Fenomenología", en: "Phenomenology", def: "Estudio de las apariencias."},
+        {es: "Deontología", en: "Deontology", def: "Ética basada en el deber."},
+        {es: "Teleología", en: "Teleology", def: "Estudio de los fines o propósitos."},
+        {es: "Dualismo", en: "Dualism", def: "Mente y cuerpo son distintos."},
+        {es: "Monismo", en: "Monism", def: "Todo es una sola sustancia."},
+        {es: "Inmanencia", en: "Immanence", def: "Que reside dentro de algo."},
+        {es: "Trascendencia", en: "Transcendence", def: "Que está más allá del mundo físico."},
+        {es: "Cogito", en: "Cogito", def: "El pensamiento como prueba de existencia."},
+        {es: "Tabula Rasa", en: "Blank Slate", def: "Mente nacida sin ideas."},
+        {es: "Imperativo", en: "Imperative", def: "Obligación moral."},
+        {es: "Dasein", en: "Being-there", def: "La existencia humana (Heidegger)."},
+        {es: "Alienación", en: "Alienation", def: "Sentirse extraño a uno mismo."},
+        {es: "Sujeto", en: "Subject", def: "El ser que conoce."},
+        {es: "Objeto", en: "Object", def: "Lo que es conocido."},
+        {es: "Pragmatismo", en: "Pragmatism", def: "Verdad basada en utilidad."},
+        {es: "Cinismo", en: "Cynicism", def: "Vida simple conforme a la naturaleza."},
+        {es: "Socrático", en: "Socratic", def: "Relativo al método de preguntas."},
+        {es: "Axiología", en: "Axiology", def: "Estudio de los valores."},
+        {es: "Metafísica", en: "Metaphysics", def: "Más allá de la física."},
+        {es: "Racionalismo", en: "Rationalism", def: "Razón como fuente de verdad."},
+        {es: "Existencialismo", en: "Existentialism", def: "Libertad individual."},
+        {es: "Utilitarismo", en: "Utilitarianism", def: "Mayor bien para el mayor número."},
+        {es: "Falsacionismo", en: "Falsificationism", def: "Refutar teorías para probarlas."},
+        {es: "Epojé", en: "Epoché", def: "Suspensión del juicio."},
+        {es: "Hilemorfismo", en: "Hylomorphism", def: "Unión de materia y forma."},
+        {es: "Silogismo", en: "Syllogism", def: "Deducción de dos premisas."},
+        {es: "Anamnesis", en: "Anamnesis", def: "Recordar conocimientos previos."},
+        {es: "Sofisma", en: "Sophism", def: "Argumento falso con apariencia de verdad."},
+        {es: "Mayéutica", en: "Maieutics", def: "Dar a luz a las ideas."},
+        {es: "Absurdismo", en: "Absurdism", def: "Búsqueda de sentido en el caos."},
+        {es: "Voluntad", en: "Will", def: "Deseo consciente de actuar."},
+        {es: "Estética", en: "Aesthetics", def: "Estudio de la belleza."},
+        {es: "Ética", en: "Ethics", def: "Estudio de la moral."},
+        {es: "Lógica", en: "Logic", def: "Leyes del razonamiento."},
+        {es: "Causalidad", en: "Causality", def: "Relación causa y efecto."},
+        {es: "Sustancia", en: "Substance", def: "Lo que permanece estable."},
+        {es: "Esencia", en: "Essence", def: "Lo que hace que algo sea lo que es."},
+        {es: "Accidente", en: "Accident", def: "Cualidad no esencial."},
+        {es: "Noumeno", en: "Noumenon", def: "La cosa en sí (Kant)."},
+        {es: "A priori", en: "A priori", def: "Antes de la experiencia."}
+    ];
+
+    function init() {
+        const today = new Date().toDateString();
+        document.getElementById('today-date').innerText = today;
+
+        let seed = today.split('').reduce((a, b) => { a = ((a << 5) - a) + b.charCodeAt(0); return a & a }, 0);
+        const seededRandom = () => {
+            var x = Math.sin(seed++) * 10000;
+            return x - Math.floor(x);
+        };
+
+        const shuffled = [...dictionary].sort(() => 0.5 - seededRandom());
+        const selected = shuffled.slice(0, 5);
+
+        const container = document.getElementById('daily-words');
+        selected.forEach(w => {
+            container.innerHTML += `
+                <div class="word-box">
+                    <span class="es">${w.es}</span> <span class="en">(${w.en})</span>
+                    <span class="def">${w.def}</span>
+                </div>`;
+        });
+
+        saveToHistory(today, selected);
+        displayHistory();
+    }
+
+    function saveToHistory(date, words) {
+        let history = JSON.parse(localStorage.getItem('philHistory')) || {};
+        if (!history[date]) {
+            history[date] = words;
+            localStorage.setItem('philHistory', JSON.stringify(history));
+        }
+    }
+
+    function toggleMastered(wordEs) {
+        let mastered = JSON.parse(localStorage.getItem('philMastered')) || [];
+        if (mastered.includes(wordEs)) {
+            mastered = mastered.filter(w => w !== wordEs);
+        } else {
+            mastered.push(wordEs);
+        }
+        localStorage.setItem('philMastered', JSON.stringify(mastered));
+        displayHistory();
+    }
+
+    function displayHistory() {
+        const history = JSON.parse(localStorage.getItem('philHistory')) || {};
+        const mastered = JSON.parse(localStorage.getItem('philMastered')) || [];
+        const list = document.getElementById('history-list');
+        list.innerHTML = "";
+        
+        Object.keys(history).reverse().forEach(date => {
+            let wordHtml = history[date].map(w => {
+                const isM = mastered.includes(w.es) ? 'is-mastered' : '';
+                return `
+                    <div class="history-item ${isM}">
+                        <span class="es">${w.es}</span> <span class="en">(${w.en})</span>
+                        <span class="mastered-badge">✓ Aprendido</span>
+                        <br><span class="master-toggle" onclick="toggleMastered('${w.es}')">Marcar como aprendido/no aprendido</span>
+                    </div>`;
+            }).join("");
+            list.innerHTML += `<div style="margin-top:20px;"><strong>${date}</strong>${wordHtml}</div>`;
+        });
+    }
+
+    function toggleHistory() {
+        const s = document.getElementById('history-section');
+        s.style.display = s.style.display === 'none' ? 'block' : 'none';
+    }
+
+    init();
+</script>
+
+</body>
+</html>
